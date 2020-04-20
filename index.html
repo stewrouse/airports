@@ -130,8 +130,6 @@
     </div>
 
     <!-- /.calcite-panels -->
-
-    <div id="editorDiv"></div>
     <div id="infoDiv" class="esri-widget">
         <b>Plane Selected:</b>
         <div id="selectedDiv">No Selection</div>
@@ -172,9 +170,10 @@
     <script src="https://js.arcgis.com/4.15/"></script>
 
     <style>
-        .esri-editor .esri-item-list__scroller {
+         /* .esri-editor .esri-item-list__scroller {
             max-height: 350px;
-        }
+        }  */
+
 
         #infoDiv {
             background-color: #F5F5F5;
@@ -496,7 +495,8 @@
                 planeLayer = new FeatureLayer({
                     url: url,
                     popupTemplate: template,
-                    outFields: ["*"]
+                    outFields: ["*"],
+                    displayField: "Aircraft_Type"
                 });
 
                 planeLayer.on("apply-edits", function () {
@@ -545,14 +545,7 @@
                         allowedWorkflows: ["create"]
                     });
 
-                    var addPlaneEditor_Expand = new Expand({
-                        view: mapView,
-                        content: addPlaneEditor,
-                        expandTooltip: "Add New Plane"
-                    })
-
-                    mapView.ui.add(addPlaneEditor_Expand, "top-left");
-
+                    mapView.ui.add(addPlaneEditor, "top-left");
 
                     mapView.whenLayerView(planeLayer).then(function (layerView) {
                         planeLayerView = layerView;
