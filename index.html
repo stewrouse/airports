@@ -262,9 +262,10 @@
              * 
              ******************************************************************/
 
-            var value, planeLayer, planeGraphic, highlightSelect, planeLayerView, editor, features, editConfig, copyPasteActive;
+            var value, planeLayer, planeGraphic, highlightSelect, planeLayerView, editor, features, editConfig;
 
             var rotateOn = false;
+            var copyPasteActive = false;
 
             var scaleSizes = new Array(25);
             scaleSizes[16] = "40px";
@@ -499,6 +500,8 @@
                 });
 
                 planeLayer.on("apply-edits", function () {
+                    console.log(rotateOn)
+                    console.log(copyPasteActive)
                     if (rotateOn == false && copyPasteActive == false) {
                         // Once edits are applied to the layer, remove the Editor from the UI
                         mapView.ui.remove(editor);
