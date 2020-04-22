@@ -1,0 +1,352 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="initial-scale=1,maximum-scale=1,user-scalable=no" />
+    <title>Intro to FeatureLayer - 4.15</title>
+
+    <link rel="stylesheet" href="https://js.arcgis.com/4.15/esri/themes/light/main.css" />
+    <script src="https://js.arcgis.com/4.15/"></script>
+
+    <style>
+        html,
+        body,
+        #viewDiv {
+            padding: 0;
+            margin: 0;
+            height: 100%;
+            width: 100%;
+        }
+
+        .esri-feature-form {
+            background: #fff;
+        }
+
+        #formDiv {
+            margin-top: 20px;
+            margin-bottom: 10px;
+        }
+    </style>
+
+    <script>
+        require([
+            "esri/Map",
+            "esri/views/MapView",
+            "esri/layers/FeatureLayer",
+            "esri/widgets/Search",
+            "esri/widgets/Editor",
+            "esri/widgets/FeatureForm"
+        ], function (Map, MapView, FeatureLayer, Search, Editor, FeatureForm) {
+            var highlightSelect, planeLayerView, copy, origin, copy_copy, selectedPlaneGraphic, addedPlaneOID, planeFeatureForm, highlight,editor;
+            var copyPasteActive = false;
+            var addPlane = false;
+
+            const editPlaneAction = {
+                title: "Edit Plane Info",
+                id: "edit-plane",
+                className: "esri-icon-edit"
+            };
+            var map = new Map({
+                basemap: "hybrid"
+            });
+
+            var view = new MapView({
+                container: "viewDiv",
+                map: map,
+                center: [-112.014370, 33.432158],
+                zoom: 16
+            });
+
+            view.ui.add("stuff", "top-left");
+            view.ui.add("formDiv", "top-right")
+
+            /********************
+             * Add feature layer
+             ********************/
+
+            // Carbon storage of trees in Warren Wilson College.
+            var featureLayer = new FeatureLayer({
+                url: "https://services8.arcgis.com/NxqmZt019CIOnKfc/arcgis/rest/services/airplanes/FeatureServer/0",
+                outFields: ["*"]
+            });
+
+            var template = {
+                title: 'Aircraft',
+                content: [
+                    {
+                        type: "fields",
+                        fieldInfos: [
+                            { fieldName: "Aircraft_Type", label: "Aircraft Type" },
+                            { fieldName: "Manufacturer", label: "Manufacturer" },
+                            { fieldName: "Model", label: "Model" },
+                            { fieldName: "Wingspan", label: "Wingspan (ft)" },
+                            { fieldName: "Length", label: "Length (ft)" },
+                            { fieldName: "Gross_Weight", label: "Gross Weight" },
+                            { fieldName: "Tail_Number", label: "Tail Number" },
+                            { fieldName: "Carrier", label: "Carrier" },
+                            { fieldName: "Date In", label: "Date In" },
+                            { fieldName: "Date Out", label: "Date Out" }
+                        ]
+                    }
+                ],
+                //actions: [editPlaneAction]
+
+            }
+            var planeLayer = new FeatureLayer({
+                url: "https://services.arcgis.com/6I1ysurtNWNxkuwd/arcgis/rest/services/Mothballed_Planes/FeatureServer/0",
+                displayField: "Aircraft_Type",
+                outFields: ["*"],
+                popupTemplate: template,
+            })
+
+            map.add(planeLayer);
+
+            view.when(function () {
+                view.popup.on("trigger-action", function (event) {
+                    if (event.action.id === "edit-plane") {
+                        editPlane();
+                    }
+                });
+
+                editor = new Editor({
+                    view: view,
+                    layerInfos: {
+                        layer: planeLayer,
+                        fieldConfig: [
+                            {
+                                name: "Reg_Num",
+                                label: "Registration Number"
+                            },
+                            {
+                                name: "Date_In",
+                                label: "Date In"
+                            },
+                            {
+                                name: "Date_Out",
+                                label: "Date Out"
+                            },
+                            {
+                                name: "Rotation",
+                                label: "Rotation"
+                            }
+                        ]
+                    }
+                })
+            });
+
+            view.whenLayerView(planeLayer).then(function (layerView) {
+                planeLayerView = layerView;
+                createPlaneSelect();
+            });
+
+            document.getElementById("copyPasteBtn_active").onclick = function () {
+                copyPasteActive = true
+            }
+
+            document.getElementById("copyPasteBtn_deactive").onclick = function () {
+                copyPasteActive = false
+            }
+
+            document.getElementById("confirmAddBtn").onclick = function () {
+                addPlane = false;
+                // Fires feature form's submit event.
+                planeFeatureForm.submit();
+            };
+
+            var formDivObj = document.getElementById("formDiv");
+
+            planeLayer.on("apply-edits", function (evt) {
+                console.log(addPlane)
+                if (addPlane == true) {
+                    console.log(evt);
+                    addedPlane = evt.edits.addFeatures[0];
+                    Promise.resolve(evt.result).then(function (value) {
+                        console.log(value)
+                        addedPlaneOID = value["addedFeatures"][0].objectId;
+                        var highlightQuery = planeLayer.createQuery();
+                        highlightQuery.where = "objectId =" + addedPlaneOID;
+                        highlightQuery.returnGeometry = true;
+                        planeLayer.queryFeatures(highlightQuery).then(function (queryResult) {
+                            if (highlight) {
+                                highlight.remove();
+                            }
+                            highlight = planeLayerView.highlight(queryResult.features);
+                        })
+                    })
+                }
+            })
+
+            view.on("click", function (event) {
+                if (addPlane == true) {
+                    translatePolygon(origin, event.mapPoint, selectedPlaneGraphic.geometry)
+                    //view.graphics.add(selectedPlaneGraphic);
+                    planeLayer.applyEdits({
+                        addFeatures: [selectedPlaneGraphic]
+                    });
+                    planeFeatureForm = new FeatureForm({
+                        container: "form",
+                        feature: selectedPlaneGraphic,
+                        fieldConfig: [
+                            {
+                                name: "Manufacturer",
+                                label: "Manufacturer"
+                            },
+                            {
+                                name: "Model",
+                                label: "Model"
+                            },
+                            {
+                                name: "Gross_Weight",
+                                label: "Gross Weight"
+                            },
+                            {
+                                name: "Tail_Number",
+                                label: "Tail Number"
+                            },
+                            {
+                                name: "Carrier",
+                                label: "Carrier"
+                            }
+                        ]
+                    });
+                    planeFeatureForm.on("submit", applyAttributeUpdates)
+                    formDivObj.classList.remove("esri-hidden");
+                }
+            });
+
+            function applyAttributeUpdates() {
+                const updateData = planeFeatureForm.getValues();
+                console.log(updateData)
+                Object.keys(updateData).forEach(function (name) {
+                    addedPlane.attributes[name] = updateData[name];
+                });
+                addedPlane.attributes["OBJECTID"] = addedPlaneOID;
+                planeLayer.applyEdits({
+                    updateFeatures: [addedPlane]
+                }).then(function (editsResult) {
+                    formDivObj.classList.add("esri-hidden");
+                    console.log("success: ", editsResult);
+                })
+                    .catch(function (error) {
+                        console.log("===============================================");
+                        console.error(
+                            "[ applyEdits ] FAILURE: ",
+                            error.code,
+                            error.name,
+                            error.message
+                        );
+                        console.log("error = ", error);
+                    });
+            }
+
+            function translatePolygon(startPoint, currPoint, polygon) {
+                let dx = currPoint.x - startPoint.x;
+                let dy = currPoint.y - startPoint.y;
+                polygon.rings.forEach(ring => {
+                    if (Array.isArray(ring[0])) {
+                        ring.forEach(coord => {
+                            coord[0] += dx;
+                            coord[1] += dy;
+                        });
+                    } else {
+                        ring[0] += dx;
+                        ring[1] += dy;
+                    }
+                });
+            }
+
+            function createPlaneSelect() {
+                var planeSelect_select = document.createElement('select');
+                planeSelect_select.addEventListener("change", planeSelected);
+                var selectHTML = "<option value='' disabled selected>Select a Plane</option>";
+
+                var planesQuery = featureLayer.createQuery();
+                planesQuery.where = "1=1";
+                planesQuery.outFields = ["Aircraft_Type"];
+                planesQuery.returnGeometry = false;
+
+                featureLayer.queryFeatures(planesQuery).then(function (results) {
+                    for (i = 0; i < results.features.length; i++) {
+                        selectHTML += "<option value='" + results.features[i].attributes.Aircraft_Type + "'>" + results.features[i].attributes.Aircraft_Type + " - " + "</option>";
+                    }
+                    planeSelect_select.innerHTML = selectHTML;
+                    document.getElementById("stuff").appendChild(planeSelect_select);
+                });
+
+            }
+
+            function planeSelected(select) {
+                addPlane = true;
+                console.log(select.srcElement.value)
+                var selectedPlane = select.srcElement.value;
+
+                var selectedQuery = featureLayer.createQuery();
+                selectedQuery.where = "Aircraft_Type = '" + selectedPlane + "'";
+                console.log(selectedQuery.where);
+                selectedQuery.returnGeometry = true;
+                featureLayer.queryFeatures(selectedQuery).then(function (queryResults) {
+                    console.log(queryResults)
+                    origin = queryResults.features[0].geometry.centroid
+                    selectedPlaneGraphic = queryResults.features[0]
+                }).catch(function (error) {
+                    console.log(error);
+                });
+            }
+
+            function editPlane() {
+
+                if (!editor.viewModel.activeWorkFlow) {
+                    view.popup.visible = false;
+
+                    editor.startUpdateWorkflowAtFeatureEdit(
+                        view.popup.selectedFeature
+                    );
+                    view.ui.add(editor, "top-right");
+                }
+
+                // We need to set a timeout to ensure the editor widget is fully rendered. We
+                // then grab it from the DOM stack
+                setTimeout(function () {
+                    // Use the editor's back button as a way to cancel out of editing
+                    let arrComp = editor.domNode.getElementsByClassName(
+                        "esri-editor__back-button esri-interactive"
+                    );
+                    if (arrComp.length === 1) {
+                        // Add a tooltip for the back button
+                        arrComp[0].setAttribute(
+                            "title",
+                            "Cancel edits, return to popup"
+                        );
+                        // Add a listerner to listen for when the editor's back button is clicked
+                        arrComp[0].addEventListener("click", function (evt) {
+                            // Prevent the default behavior for the back button and instead remove the editor and reopen the popup
+                            evt.preventDefault();
+                            view.ui.remove(editor);
+                            view.popup.open({
+                                features: features
+                            });
+                        });
+                    }
+                }, 350);
+            }
+        });
+    </script>
+</head>
+
+<body>
+    <div id="viewDiv"></div>
+    <div id="stuff" class="esri-widget">
+        <button id="copyPasteBtn_active">COPY & PASTE ACTIVATE</button>
+        <button id="copyPasteBtn_deactive">COPY & PASTE DEACTIVATE</button>
+    </div>
+    <div id="formDiv" class="esri-widget esri-hidden">
+        <h1>Aircraft Information</h1>
+        <div id="form" class="scroller esri-component"></div>
+        <input type="button" class="esri-button" value="Confirm" id="confirmAddBtn" />
+        <input type="button" class="esri-button" value="Cancel" id="cancelAddBtn" />
+    </div>
+    <div id="editorDiv" class=""></div>
+</body>
+
+</html>
