@@ -38,7 +38,7 @@
             "esri/widgets/Editor",
             "esri/widgets/FeatureForm"
         ], function (Map, MapView, FeatureLayer, Search, Editor, FeatureForm) {
-            var highlightSelect, planeLayerView, copy, origin, copy_copy, selectedPlaneGraphic, addedPlaneOID, planeFeatureForm, highlight,editor;
+            var highlightSelect, planeLayerView, copy, origin, copy_copy, selectedPlaneGraphic, addedPlaneOID, planeFeatureForm, highlight, editor;
             var copyPasteActive = false;
             var addPlane = false;
 
@@ -90,7 +90,7 @@
                         ]
                     }
                 ],
-                //actions: [editPlaneAction]
+                actions: [editPlaneAction]
 
             }
             var planeLayer = new FeatureLayer({
@@ -109,30 +109,8 @@
                     }
                 });
 
-                editor = new Editor({
-                    view: view,
-                    layerInfos: {
-                        layer: planeLayer,
-                        fieldConfig: [
-                            {
-                                name: "Reg_Num",
-                                label: "Registration Number"
-                            },
-                            {
-                                name: "Date_In",
-                                label: "Date In"
-                            },
-                            {
-                                name: "Date_Out",
-                                label: "Date Out"
-                            },
-                            {
-                                name: "Rotation",
-                                label: "Rotation"
-                            }
-                        ]
-                    }
-                })
+                createEditor()
+                
             });
 
             view.whenLayerView(planeLayer).then(function (layerView) {
@@ -174,6 +152,10 @@
                             highlight = planeLayerView.highlight(queryResult.features);
                         })
                     })
+                }else if(editor.viewModel.state === "editing-existing-feature"){
+                    view.ui.remove(editor);
+                    editor.destroy();
+                    createEditor()
                 }
             })
 
@@ -292,6 +274,31 @@
                 }).catch(function (error) {
                     console.log(error);
                 });
+            }
+
+            function createEditor(){
+                editor = new Editor({
+                    view: view,
+                    layerInfos: [
+                        {
+                            layer: planeLayer,
+                            fieldConfig: [
+                                {
+                                    name: "Tail_Number",
+                                    label: "Tail Number"
+                                },
+                                {
+                                    name: "date_in",
+                                    label: "Date In"
+                                },
+                                {
+                                    name: "date_out",
+                                    label: "Date Out"
+                                }
+                            ]
+                        }
+                    ]
+                })
             }
 
             function editPlane() {
