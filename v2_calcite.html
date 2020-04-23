@@ -159,6 +159,8 @@
         };
     </script>
 
+    <script type="text/javascript" src="config.js"></script>
+
     <!-- ArcGIS JS 4 -->
     <script src="https://js.arcgis.com/4.15/"></script>
 
@@ -231,12 +233,8 @@
             var copyPasteActive = false;
             var addPlane = false;
 
-            var planeList = ["B 737_800", "B737_900_P", "B747_400_P", "B757_200_P", "B757_300_P",
-                "B767_200_P", "B767_300w_P", "B777_200_P", "B777_300ER_P", "B787_800_P", "B787_900_P",
-                "A 319", "A 320", "A 321", "A 300", "A330_200_P", "A330_300_P", "A340_600_P", "A350_900_P",
-                "MD10_10_P", "MD 11", "CRJ 700", "CRJ_900_P", "Embraer_145_P", "Embraer_170_P",
-                "Embraer_190_P", "Beechcraft_1900C_P", "C5_A_P", "C_17_P", "C130_J_P"]
 
+            var planeList = params.aircraftList;
             var planeWhereClause = "";
 
             for (i = 0; i < planeList.length; i++) {
@@ -625,7 +623,7 @@
             function editPlane(feature) {
 
                 if (!editor.viewModel.activeWorkFlow) {
-                    
+
                     mapView.popup.visible = false;
 
                     editor.startUpdateWorkflowAtFeatureEdit(
