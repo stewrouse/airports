@@ -131,12 +131,6 @@
 
     <!-- /.calcite-panels -->
     <div id="planeSelect" class="esri-widget"></div>
-    <div id="formDiv" class="esri-widget esri-hidden">
-        <h1>Aircraft Information</h1>
-        <!-- <div id="form" class="scroller esri-component"></div> -->
-        <input type="button" class="esri-button" value="Confirm" id="confirmAddBtn" />
-        <input type="button" class="esri-button" value="Cancel" id="cancelAddBtn" />
-    </div>
     <div id="copyFeaturesDiv" class="esri-widget">
         <button class="btn modifier-class btn-small" id="copyFeaturesBtn">Copy Plane</button>
         <button class="btn modifier-class btn-small btn-red" id="stopCopyBtn">Stop Copy</button>
@@ -207,7 +201,6 @@
             "esri/widgets/Attribution",
             "esri/widgets/Expand",
             "esri/widgets/Measurement",
-            "esri/widgets/FeatureForm",
             "esri/layers/FeatureLayer",
 
             // Bootstrap
@@ -220,7 +213,7 @@
             "calcite-maps/calcitemaps-arcgis-support-v0.10",
 
             "dojo/domReady!"
-        ], function (Map, MapView, Editor, Home, Zoom, Compass, Search, Legend, BasemapToggle, ScaleBar, Attribution, Expand, Measurement, FeatureForm, FeatureLayer, Collapse, Dropdown, CalciteMaps, CalciteMapArcGISSupport) {
+        ], function (Map, MapView, Editor, Home, Zoom, Compass, Search, Legend, BasemapToggle, ScaleBar, Attribution, Expand, Measurement, FeatureLayer, Collapse, Dropdown, CalciteMaps, CalciteMapArcGISSupport) {
 
             /******************************************************************
              *
@@ -272,6 +265,8 @@
 
             var featureLayer = new FeatureLayer({
                 url: "https://services5.arcgis.com/62o2qANhRqripAuB/ArcGIS/rest/services/PHX_Aircraft/FeatureServer/0",
+                
+                //url: "https://maps.phoenix.gov/avn/rest/services/Public/Sky_Harbor_Aircraft_Types_2020/FeatureServer/0",
                 outFields: ["*"]
             });
 
@@ -376,9 +371,6 @@
             })
             mapView.ui.add(measure_Expand, "top-left");
 
-
-            mapView.ui.add("formDiv", "top-right")
-
             measure_Expand.watch("expanded", function (evt) {
                 if (evt == true ? measurement.activeTool = "distance" : measurement.activeTool = null);
             });
@@ -394,41 +386,36 @@
                 createPlaneSelect();
             });
 
-            planeLayer.on("apply-edits", function (evt) {
-                console.log(addPlane)
-                if (addPlane == true) {
+            planeLayer.on("edits", function (evt) {
+                if (evt.addedFeatures.length == 1) {
                     console.log(evt);
-                    addedPlane = evt.edits.addFeatures[0];
-                    Promise.resolve(evt.result).then(function (value) {
-                        console.log(value)
-                        addedPlaneOID = value["addedFeatures"][0].objectId;
-                        var highlightQuery = planeLayer.createQuery();
-                        highlightQuery.where = "objectId =" + addedPlaneOID;
-                        highlightQuery.returnGeometry = true;
-                        planeLayer.queryFeatures(highlightQuery).then(function (queryResult) {
-                            if (highlight) {
-                                highlight.remove();
-                            }
-                            highlight = planeLayerView.highlight(queryResult.features);
-                            //console.log(queryResult);
-                            //editPlane(queryResult.features[0]);
-                        })
+                    addedPlaneOID = evt.addedFeatures[0].objectId;
+                    var highlightQuery = planeLayer.createQuery();
+                    highlightQuery.where = "objectId =" + addedPlaneOID;
+                    highlightQuery.returnGeometry = true;
+                    planeLayer.queryFeatures(highlightQuery).then(function (queryResult) {
+                        if (highlight) {
+                            highlight.remove();
+                        }
+                        highlight = planeLayerView.highlight(queryResult.features);
+                        addedPlane = queryResult.features[0];
+
+                        console.log(addedPlane);
+
+                        editPlane(addedPlane)
                     })
                 } else if (editor.viewModel.state === "editing-existing-feature") {
                     mapView.ui.remove(editor);
                     editor.destroy();
                     createEditor()
                 }
-            })
-
-            var formDivObj = document.getElementById("formDiv");
+            });
 
             document.getElementById("copyFeaturesBtn").onclick = function () {
                 copyPasteActive = true;
-                //console.log(mapView.popup.features);
-                //console.log(planeGraphic);
                 document.body.style.cursor = "crosshair";
                 document.getElementById("copyAlert").style.display = "block";
+                mapView.popup.close();
             }
 
             document.getElementById("stopCopyBtn").onclick = function () {
@@ -437,51 +424,18 @@
                 document.getElementById("copyAlert").style.display = "none";
             }
 
-            document.getElementById("confirmAddBtn").onclick = function () {
-                addPlane = false;
-                // Fires feature form's submit event.
-                planeFeatureForm.submit();
-            };
-
 
             mapView.on("click", function (event) {
                 if (highlight) {
                     highlight.remove();
                 }
                 if (addPlane == true) {
-                    translatePolygon(origin, event.mapPoint, selectedPlaneGraphic.geometry)
-                    //mapView.graphics.add(selectedPlaneGraphic);
+                    translatePolygon(aircraftTemplateCentroid, event.mapPoint, aircraftTemplate.geometry)
                     planeLayer.applyEdits({
-                        addFeatures: [selectedPlaneGraphic]
+                        addFeatures: [aircraftTemplate]
                     });
-                    var forForm = document.createElement('form')
-                    forForm.id = "form"
-                    forForm = document.getElementById("formDiv").insertBefore(forForm, document.getElementById("confirmAddBtn"));
+                    addPlane = false;
 
-                    planeFeatureForm = new FeatureForm({
-                        container: "form",
-                        feature: selectedPlaneGraphic,
-                        fieldConfig: [
-                            {
-                                name: "Tail_Number",
-                                label: "Tail Number"
-                            },
-                            {
-                                name: "Carrier",
-                                label: "Carrier"
-                            },
-                            {
-                                name: "Date_In",
-                                label: "Date In"
-                            },
-                            {
-                                name: "Date_Out",
-                                label: "Date Out"
-                            }
-                        ]
-                    });
-                    planeFeatureForm.on("submit", applyAttributeUpdates)
-                    formDivObj.classList.remove("esri-hidden");
                 } else if (copyPasteActive == true) {
                     console.log(alphaPlane);
                     var x = alphaPlane.clone();
@@ -489,7 +443,6 @@
                     planeLayer.applyEdits({
                         addFeatures: [x]
                     });
-                    //mapView.graphics.add(x);
 
                 } else {
                     mapView.hitTest(event).then(function (response) {
@@ -529,16 +482,16 @@
             function planeSelected(select) {
                 addPlane = true;
                 console.log(select.srcElement.value)
-                var selectedPlane = select.srcElement.value;
+                var planeNameFromPlaneSelect = select.srcElement.value;
 
-                var selectedQuery = featureLayer.createQuery();
-                selectedQuery.where = "Aircraft_Type = '" + selectedPlane + "'";
-                console.log(selectedQuery.where);
-                selectedQuery.returnGeometry = true;
-                featureLayer.queryFeatures(selectedQuery).then(function (queryResults) {
+                var planeTemplateQuery = featureLayer.createQuery();
+                planeTemplateQuery.where = "Aircraft_Type = '" + planeNameFromPlaneSelect + "'";
+                console.log(planeTemplateQuery.where);
+                planeTemplateQuery.returnGeometry = true;
+                featureLayer.queryFeatures(planeTemplateQuery).then(function (queryResults) {
                     console.log(queryResults)
-                    origin = queryResults.features[0].geometry.centroid
-                    selectedPlaneGraphic = queryResults.features[0]
+                    aircraftTemplateCentroid = queryResults.features[0].geometry.centroid
+                    aircraftTemplate = queryResults.features[0]
                 }).catch(function (error) {
                     console.log(error);
                 });
@@ -561,32 +514,6 @@
                 });
             }
 
-            function applyAttributeUpdates() {
-                const updateData = planeFeatureForm.getValues();
-                console.log(updateData)
-                Object.keys(updateData).forEach(function (name) {
-                    addedPlane.attributes[name] = updateData[name];
-                });
-                addedPlane.attributes["OBJECTID"] = addedPlaneOID;
-                planeLayer.applyEdits({
-                    updateFeatures: [addedPlane]
-                }).then(function (editsResult) {
-                    formDivObj.classList.add("esri-hidden");
-                    planeFeatureForm.destroy();
-                    console.log("success: ", editsResult);
-                })
-                    .catch(function (error) {
-                        console.log("===============================================");
-                        console.error(
-                            "[ applyEdits ] FAILURE: ",
-                            error.code,
-                            error.name,
-                            error.message
-                        );
-                        console.log("error = ", error);
-                    });
-            }
-
             function createEditor() {
                 editor = new Editor({
                     view: mapView,
@@ -597,7 +524,7 @@
                                 enableScaling: false
                             }
                         }
-                    },
+                    } ,
                     layerInfos: [
                         {
                             layer: planeLayer,
@@ -616,7 +543,7 @@
                                 }
                             ]
                         }
-                    ]
+                    ] 
                 })
             }
 
