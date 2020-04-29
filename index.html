@@ -1,0 +1,632 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no">
+    <meta name="description" content="ArcGIS JS v4, Calcite Maps and Bootstrap Example">
+
+    <title>Phoenix Sky Harbor</title>
+
+    <!-- Calcite Maps Bootstrap -->
+    <link rel="stylesheet" href="https://esri.github.io/calcite-maps/dist/css/calcite-maps-bootstrap.min-v0.10.css">
+
+    <!-- Calcite Maps -->
+    <link rel="stylesheet" href="https://esri.github.io/calcite-maps/dist/css/calcite-maps-arcgis-4.x.min-v0.10.css">
+
+    <link rel="stylesheet"
+        href="https://s3-us-west-1.amazonaws.com/patterns.esri.com/files/calcite-web/1.2.5/css/calcite-web.min.css">
+
+    <!-- ArcGIS JS 4 -->
+    <link rel="stylesheet" href="https://js.arcgis.com/4.15/esri/css/main.css">
+
+    <style>
+        html,
+        body {
+            margin: 0;
+            padding: 0;
+            height: 100%;
+            width: 100%;
+        }
+    </style>
+
+</head>
+
+<body class="calcite-maps calcite-nav-top">
+    <!-- Navbar -->
+
+    <nav class="navbar calcite-navbar navbar-fixed-top calcite-text-light calcite-bg-dark">
+        <!-- Menu -->
+        <div class="dropdown calcite-dropdown calcite-text-dark calcite-bg-light" role="presentation">
+            <a class="dropdown-toggle" role="menubutton" aria-haspopup="true" aria-expanded="false" tabindex="0">
+                <div class="calcite-dropdown-toggle">
+                    <span class="sr-only">Toggle dropdown menu</span>
+                    <span></span>
+                    <span></span>
+                    <span></span>
+                    <span></span>
+                </div>
+            </a>
+            <ul class="dropdown-menu" role="menu">
+                <!--
+        <li><a role="menuitem" tabindex="0" data-target="#panelInfo" aria-haspopup="true"><span class="glyphicon glyphicon-info-sign"></span> About</a></li>
+        -->
+                <li><a role="menuitem" tabindex="0" href="#" data-target="#panelLegend" aria-haspopup="true"><span
+                            class="glyphicon glyphicon-list-alt"></span> Legend</a></li>
+                <li><a role="menuitem" tabindex="0" href="#" id="calciteToggleNavbar" aria-haspopup="true"><span
+                            class="glyphicon glyphicon-fullscreen"></span> Full Map</a></li>
+            </ul>
+        </div>
+        <!-- Title -->
+        <div class="calcite-title calcite-overflow-hidden">
+            <span class="calcite-title-main"><img src="https://jimbarry.github.io/airports/images/phx.png" width='140px'
+                    height='45px'></span>
+            <span class="calcite-title-divider hidden-xs"></span>
+            <span class="calcite-title-main">Phoenix Sky Harbor International Airport</span>
+            <span class="calcite-title-divider hidden-xs"></span>
+            <span class="calcite-title-sub hidden-xs">Aircraft Parking and Storage</span>
+        </div>
+        <!-- Nav -->
+        <ul class="nav navbar-nav calcite-nav">
+            <li>
+                <div class="calcite-navbar-search calcite-search-expander">
+                    <div id="searchWidgetDiv"></div>
+                </div>
+            </li>
+        </ul>
+    </nav>
+
+    <!--/.calcite-navbar -->
+
+    <!-- Map  -->
+
+    <div class="calcite-map calcite-map-absolute">
+        <div id="mapViewDiv"></div>
+    </div>
+
+    <!-- /.calcite-map -->
+
+    <!-- Panels -->
+
+    <div class="calcite-panels calcite-panels-right calcite-text-light calcite-bg-dark panel-group">
+
+        <!-- Panel - Basemaps -->
+
+        <!--
+    <div id="panelInfo" class="panel collapse in">
+      <div id="headingInfo" class="panel-heading" role="tab">
+        <div class="panel-title">
+          <a class="panel-toggle" role="button" data-toggle="collapse" href="#collapseInfo"  aria-expanded="true" aria-controls="collapseInfo"><span class="glyphicon glyphicon-info-sign" aria-hidden="true"></span><span class="panel-label">About</span></a> 
+          <a class="panel-close" role="button" data-toggle="collapse" tabindex="0" href="#panelInfo"><span class="esri-icon esri-icon-close" aria-hidden="true"></span></a>  
+        </div>
+      </div>
+      <div id="collapseInfo" class="panel-collapse collapse in" role="tabpanel" aria-labelledby="headingInfo">
+        <div class="panel-body">
+          <p>This is my map app!</p>
+        </div>
+     </div>
+    </div>
+    -->
+
+        <!-- Panel - Legend -->
+
+        <div id="panelLegend" class="panel collapse">
+            <div id="headingLegend" class="panel-heading" role="tab">
+                <div class="panel-title">
+                    <a class="panel-toggle" role="button" data-toggle="collapse" href="#collapseLegend"
+                        aria-expanded="false" aria-controls="collapseLegend"><span class="glyphicon glyphicon-list-alt"
+                            aria-hidden="true"></span><span class="panel-label">Legend</span></a>
+                    <a class="panel-close" role="button" data-toggle="collapse" tabindex="0" href="#panelLegend"><span
+                            class="esri-icon esri-icon-close" aria-hidden="true"></span></a>
+                </div>
+            </div>
+            <div id="collapseLegend" class="panel-collapse collapse" role="tabpanel" aria-labelledby="headingLegend">
+                <div class="panel-body">
+                    <div id="legendDiv"></div>
+                </div>
+            </div>
+        </div>
+
+    </div>
+
+    <!-- /.calcite-panels -->
+    <div id="planeSelect" class="esri-widget"></div>
+    <div id="copyFeaturesDiv" class="esri-widget">
+        <b>Plane to be copied and pasted:</b>
+        <p id="copyPasteInfo">hello</p>
+        <button class="btn modifier-class btn-small" id="copyFeaturesBtn">Copy Plane</button>
+        <button class="btn modifier-class btn-small btn-red" id="stopCopyBtn">Stop Copy</button>
+    </div>
+
+    <div class="alert alert-red modifier-class is-active js-animation animate-fade-in" id="copyAlert">
+        Your are currently pasting new features to the map. Every time you click a new feature will be added to the map.
+    </div>
+
+    <div class="alert alert-red modifier-class is-active js-animation animate-fade-in" id="addAlert">
+        Your are currently adding a new feature to the map. Click to place the feature in the desired location.
+    </div>
+
+    <script type="text/javascript">
+        var dojoConfig = {
+            packages: [{
+                name: "bootstrap",
+                location: "https://esri.github.io/calcite-maps/dist/vendor/dojo-bootstrap"
+            },
+            {
+                name: "calcite-maps",
+                location: "https://esri.github.io/calcite-maps/dist/js/dojo"
+            }]
+        };
+    </script>
+
+    <script type="text/javascript" src="config.js"></script>
+
+    <!-- ArcGIS JS 4 -->
+    <script src="https://js.arcgis.com/4.15/"></script>
+
+    <style>
+        /* .esri-editor .esri-item-list__scroller {
+            max-height: 350px;
+        }  */
+
+
+        #copyFeaturesDiv {
+            background-color: #F5F5F5;
+            padding: 10px;
+            width: 320px;
+            margin: 5px;
+            font-size: 14px;
+            box-shadow: 0 1px 2px rgba(0, 0, 0, 0.3);
+        }
+
+        #copyAlert {
+            top: 50px;
+            left: 40%;
+            position: absolute;
+            z-index: 5;
+            display: none;
+        }
+
+        #addAlert {
+            top: 50px;
+            left: 40%;
+            position: absolute;
+            z-index: 5;
+            display: none;
+        }
+    </style>
+
+    <script>
+
+        require([
+            // ArcGIS
+            "esri/Map",
+            "esri/views/MapView",
+
+            // Widgets
+            "esri/widgets/Editor",
+            "esri/widgets/Home",
+            "esri/widgets/Zoom",
+            "esri/widgets/Compass",
+            "esri/widgets/Search",
+            "esri/widgets/Legend",
+            "esri/widgets/BasemapToggle",
+            "esri/widgets/ScaleBar",
+            "esri/widgets/Attribution",
+            "esri/widgets/Expand",
+            "esri/widgets/Measurement",
+            "esri/layers/FeatureLayer",
+            "esri/renderers/UniqueValueRenderer",
+
+            // Bootstrap
+            "bootstrap/Collapse",
+            "bootstrap/Dropdown",
+
+            // Calcite Maps
+            "calcite-maps/calcitemaps-v0.10",
+            // Calcite Maps ArcGIS Support
+            "calcite-maps/calcitemaps-arcgis-support-v0.10",
+
+            "dojo/domReady!"
+        ], function (Map, MapView, Editor, Home, Zoom, Compass, Search, Legend, BasemapToggle, ScaleBar, Attribution, Expand, Measurement, FeatureLayer, UniqueValueRenderer, Collapse, Dropdown, CalciteMaps, CalciteMapArcGISSupport) {
+
+            /******************************************************************
+             *
+             * Create the map, view and widgets
+             * 
+             ******************************************************************/
+
+            var value, planeLayer, planeGraphic, highlightSelect, planeLayerView, editor, features, editConfig, addedPlaneOID, highlight, addedPlane;
+
+            var copyPasteActive = false;
+            var addPlane = false;
+
+
+            //var planeList = params.aircraftList;
+            var planeWhereClause = "";
+
+            var planeList = params.aircraftList;
+            var planeLayerURL = params.aircraftLayerURL;
+            var planeLayerRenderer = params.renderer;
+            var editTemplate = params.fieldConfig;
+
+            for (i = 0; i < planeList.length; i++) {
+                console.log(planeList[i]);
+                if (i == planeList.length - 1) {
+                    planeWhereClause += "Aircraft_Type ='" + planeList[i] + "'"
+                } else {
+                    planeWhereClause += "Aircraft_Type ='" + planeList[i] + "' OR ";
+                }
+            }
+            console.log(planeWhereClause);
+
+            const editPlaneAction = {
+                title: "Edit Plane Info",
+                id: "edit-plane",
+                className: "esri-icon-edit"
+            };
+
+            var map = new Map({
+                basemap: "hybrid"
+            });
+
+            // View
+            var mapView = new MapView({
+                container: "mapViewDiv",
+                map: map,
+                padding: {
+                    top: 50,
+                    bottom: 0
+                },
+                ui: { components: [] },
+                zoom: 18,
+                center: [-112.009, 33.433]
+            });
+
+            var featureLayer = new FeatureLayer({
+                url: "https://services5.arcgis.com/62o2qANhRqripAuB/ArcGIS/rest/services/PHX_Aircraft/FeatureServer/0",
+
+                //url: "https://maps.phoenix.gov/avn/rest/services/Public/Sky_Harbor_Aircraft_Types_2020/FeatureServer/0",
+                outFields: ["*"]
+            });
+
+            var template = {
+                title: 'Aircraft',
+                content: [
+                    {
+                        type: "fields",
+                        fieldInfos: [
+                            { fieldName: "Aircraft_Type", label: "Aircraft Type" },
+                            { fieldName: "Manufacturer", label: "Manufacturer" },
+                            { fieldName: "Model", label: "Model" },
+                            { fieldName: "Wingspan", label: "Wingspan (ft)" },
+                            { fieldName: "Length", label: "Length (ft)" },
+                            { fieldName: "Gross_Weight", label: "Gross Weight" },
+                            { fieldName: "Tail_Number", label: "Tail Number" },
+                            { fieldName: "Carrier", label: "Carrier" },
+                            { fieldName: "Date In", label: "Date In" },
+                            { fieldName: "Date Out", label: "Date Out" }
+                        ]
+                    }
+                ],
+                actions: [editPlaneAction]
+
+            }
+
+            var planeLayer = new FeatureLayer({
+                url: planeLayerURL,
+                displayField: "Aircraft_Type",
+                outFields: ["*"],
+                popupTemplate: template,
+                renderer: planeLayerRenderer
+            })
+
+            map.add(planeLayer);
+
+            // Popup and panel sync
+            mapView.when(function () {
+                CalciteMapArcGISSupport.setPopupPanelSync(mapView);
+                mapView.popup.on("trigger-action", function (event) {
+                    if (event.action.id === "edit-plane") {
+                        editPlane(mapView.popup.selectedFeature);
+                    }
+                });
+                createEditor()
+            });
+
+            // Search - add to navbar
+            var searchWidget = new Search({
+                container: "searchWidgetDiv",
+                view: mapView
+            });
+            CalciteMapArcGISSupport.setSearchExpandEvents(searchWidget);
+
+            // Map widgets
+            var home = new Home({
+                view: mapView
+            });
+            mapView.ui.add(home, "top-left");
+
+            var zoom = new Zoom({
+                view: mapView
+            });
+            mapView.ui.add(zoom, "top-left");
+
+            var compass = new Compass({
+                view: mapView
+            });
+            mapView.ui.add(compass, "top-left");
+            mapView.ui.add("planeSelect", "top-left");
+
+            var basemapToggle = new BasemapToggle({
+                view: mapView,
+                secondBasemap: "satellite"
+            });
+            mapView.ui.add(basemapToggle, "bottom-right");
+
+            var scaleBar = new ScaleBar({
+                view: mapView
+            });
+            mapView.ui.add(scaleBar, "bottom-left");
+
+            var attribution = new Attribution({
+                view: mapView
+            });
+            mapView.ui.add(attribution, "manual");
+
+            var copyFeaturesDiv_Expand = new Expand({
+                view: mapView,
+                content: document.getElementById("copyFeaturesDiv"),
+                expandIconClass: "esri-icon-duplicate",
+                expandTooltip: "Copy & Paste Planes"
+            })
+            mapView.ui.add(copyFeaturesDiv_Expand, "top-left");
+
+            const measurement = new Measurement({
+                view: mapView,
+                linearUnit: "us-feet"
+            });
+
+            var measure_Expand = new Expand({
+                view: mapView,
+                content: measurement
+            })
+            mapView.ui.add(measure_Expand, "top-left");
+
+            measure_Expand.watch("expanded", function (evt) {
+                if (evt == true ? measurement.activeTool = "distance" : measurement.activeTool = null);
+            });
+
+            // Panel widgets - add legend
+            var legendWidget = new Legend({
+                container: "legendDiv",
+                view: mapView
+            });
+
+            mapView.whenLayerView(planeLayer).then(function (layerView) {
+                planeLayerView = layerView;
+                createPlaneSelect();
+            });
+
+            planeLayer.on("edits", function (evt) {
+                if (evt.addedFeatures.length == 1) {
+                    console.log(evt);
+                    addedPlaneOID = evt.addedFeatures[0].objectId;
+                    var highlightQuery = planeLayer.createQuery();
+                    highlightQuery.where = "objectId =" + addedPlaneOID;
+                    highlightQuery.returnGeometry = true;
+                    planeLayer.queryFeatures(highlightQuery).then(function (queryResult) {
+                        if (highlight) {
+                            highlight.remove();
+                        }
+                        highlight = planeLayerView.highlight(queryResult.features);
+                        addedPlane = queryResult.features[0];
+
+                        console.log(addedPlane);
+
+                        editPlane(addedPlane)
+                    })
+                } else if (editor.viewModel.state === "editing-existing-feature") {
+                    mapView.ui.remove(editor);
+                    editor.destroy();
+                    createEditor()
+                }
+                if (evt.updatedFeatures.length > 0) {
+                    if (addedPlaneOID === evt.updatedFeatures[0].objectId) {
+                        alphaPlane = addedPlane;
+                    }
+                }
+            });
+
+            document.getElementById("copyFeaturesBtn").onclick = function () {
+                copyPasteActive = true;
+                document.body.style.cursor = "crosshair";
+                document.getElementById("copyAlert").style.display = "block";
+                document.getElementById("copyPasteInfo").innerText = alphaPlane.attributes.Aircraft_Type;
+                console.log(alphaPlane)
+                mapView.popup.close();
+            }
+
+            document.getElementById("stopCopyBtn").onclick = function () {
+                copyPasteActive = false;
+                document.body.style.cursor = "default";
+                document.getElementById("copyAlert").style.display = "none";
+                document.getElementById("copyPasteInfo").innerText = "";
+            }
+
+
+            mapView.on("click", function (event) {
+                if (highlight) {
+                    highlight.remove();
+                }
+                if (addPlane == true) {
+                    translatePolygon(aircraftTemplateCentroid, event.mapPoint, aircraftTemplate.geometry)
+                    planeLayer.applyEdits({
+                        addFeatures: [aircraftTemplate]
+                    });
+                    addPlane = false;
+                    document.body.style.cursor = "default";
+                    document.getElementById("addAlert").style.display = "none";
+
+                } else if (copyPasteActive == true) {
+                    console.log(alphaPlane);
+                    var x = alphaPlane.clone();
+                    translatePolygon(x.geometry.centroid, event.mapPoint, x.geometry);
+                    planeLayer.applyEdits({
+                        addFeatures: [x]
+                    });
+
+                } else {
+                    mapView.hitTest(event).then(function (response) {
+                        console.log(response);
+                        var copyPasteQuery = planeLayer.createQuery();
+                        copyPasteQuery.where = "OBJECTID = " + response.results[0].graphic.attributes.OBJECTID;
+                        copyPasteQuery.returnGeometry = true;
+                        copyPasteQuery.outFields = ["*"];
+                        planeLayer.queryFeatures(copyPasteQuery).then(function (pastePlane) {
+                            console.log(pastePlane);
+                            alphaPlane = pastePlane.features[0];
+                        })
+                    })
+                }
+            });
+
+            function createPlaneSelect() {
+                var planeSelect_select = document.createElement('select');
+                planeSelect_select.addEventListener("change", planeSelected);
+                var selectHTML = "<option value='' disabled selected>Select a Plane</option>";
+
+                var planesQuery = featureLayer.createQuery();
+                planesQuery.where = planeWhereClause;
+                planesQuery.outFields = ["Aircraft_Type"];
+                planesQuery.returnGeometry = false;
+
+                featureLayer.queryFeatures(planesQuery).then(function (results) {
+                    for (i = 0; i < results.features.length; i++) {
+                        selectHTML += "<option value='" + results.features[i].attributes.Aircraft_Type + "'>" + results.features[i].attributes.Aircraft_Type + " - " + "</option>";
+                    }
+                    planeSelect_select.innerHTML = selectHTML;
+                    document.getElementById("planeSelect").appendChild(planeSelect_select);
+                }).catch(function (error) {
+                    console.log(error);
+                });
+
+            }
+
+            function planeSelected(select) {
+                addPlane = true;
+                document.body.style.cursor = "crosshair";
+                document.getElementById("addAlert").style.display = "block";
+                console.log(select.srcElement.value)
+                var planeNameFromPlaneSelect = select.srcElement.value;
+
+                var planeTemplateQuery = featureLayer.createQuery();
+                planeTemplateQuery.where = "Aircraft_Type = '" + planeNameFromPlaneSelect + "'";
+                console.log(planeTemplateQuery.where);
+                planeTemplateQuery.returnGeometry = true;
+                featureLayer.queryFeatures(planeTemplateQuery).then(function (queryResults) {
+                    console.log(queryResults)
+                    aircraftTemplateCentroid = queryResults.features[0].geometry.centroid
+                    aircraftTemplate = queryResults.features[0]
+                }).catch(function (error) {
+                    console.log(error);
+                });
+            }
+
+            function translatePolygon(startPoint, currPoint, polygon) {
+                console.log("Polygon: ", polygon)
+                let dx = currPoint.x - startPoint.x;
+                let dy = currPoint.y - startPoint.y;
+                polygon.rings.forEach(ring => {
+                    if (Array.isArray(ring[0])) {
+                        ring.forEach(coord => {
+                            coord[0] += dx;
+                            coord[1] += dy;
+                        });
+                    } else {
+                        ring[0] += dx;
+                        ring[1] += dy;
+                    }
+                });
+            }
+
+            function createEditor() {
+                editor = new Editor({
+                    view: mapView,
+                    allowedWorkflows: ["update"],
+                    supportingWidgetDefaults: {
+                        sketch: {
+                            tool: "transform",
+                            defaultUpdateOptions: {
+                                enableScaling: false,
+                                toggleToolOnClick: false
+                            }
+                        }
+                    },
+                    layerInfos: [
+                        {
+                            layer: planeLayer,
+                            fieldConfig: editTemplate
+                        }
+                    ]
+                })
+            }
+
+            function editPlane(feature) {
+
+                if (!editor.viewModel.activeWorkFlow) {
+
+                    mapView.popup.visible = false;
+
+                    editor.startUpdateWorkflowAtFeatureEdit(
+                        feature
+                    );
+                    mapView.ui.add(editor, "top-right");
+                }
+
+                // We need to set a timeout to ensure the editor widget is fully rendered. We
+                // then grab it from the DOM stack
+                setTimeout(function () {
+                    // Use the editor's back button as a way to cancel out of editing
+                    let editorBtns = editor.domNode.getElementsByClassName("esri-editor__control-button esri-button");
+                    let arrComp = editor.domNode.getElementsByClassName(
+                        "esri-editor__back-button esri-interactive"
+                    );
+                    if (arrComp.length === 1) {
+                        // Add a tooltip for the back button
+                        arrComp[0].setAttribute(
+                            "title",
+                            "Cancel edits, return to popup"
+                        );
+                        // Add a listerner to listen for when the editor's back button is clicked
+                        arrComp[0].addEventListener("click", function (evt) {
+                            // Prevent the default behavior for the back button and instead remove the editor and reopen the popup
+                            evt.preventDefault();
+                            mapView.ui.remove(editor);
+                            editor.destroy();
+                            createEditor();
+                            mapView.popup.open({
+                                features: features
+                            });
+                        });
+                    }
+                }, 250);
+            }
+
+            // Watch when the popup is visible
+            mapView.popup.watch("visible", function (event) {
+                // Check the Editor's viewModel state, if it is currently open and editing existing features, disable popups
+                if (editor.viewModel.state === "editing-existing-feature") {
+                    view.popup.close();
+                } else {
+                    // Grab the features of the popup
+                    features = mapView.popup.features;
+                }
+            });
+
+        });
+    </script>
+
+</body>
+
+</html>
