@@ -217,6 +217,8 @@
             "esri/widgets/Measurement",
             "esri/layers/FeatureLayer",
             "esri/renderers/UniqueValueRenderer",
+            "esri/tasks/GeometryService",
+            "esri/tasks/support/ProjectParameters",
 
             // Bootstrap
             "bootstrap/Collapse",
@@ -228,7 +230,7 @@
             "calcite-maps/calcitemaps-arcgis-support-v0.10",
 
             "dojo/domReady!"
-        ], function (Map, MapView, Editor, Home, Zoom, Compass, Search, Legend, BasemapToggle, ScaleBar, Attribution, Expand, Measurement, FeatureLayer, UniqueValueRenderer, Collapse, Dropdown, CalciteMaps, CalciteMapArcGISSupport) {
+        ], function (Map, MapView, Editor, Home, Zoom, Compass, Search, Legend, BasemapToggle, ScaleBar, Attribution, Expand, Measurement, FeatureLayer, UniqueValueRenderer, GeometryService, ProjectParameters, Collapse, Dropdown, CalciteMaps, CalciteMapArcGISSupport) {
 
             /******************************************************************
              *
@@ -266,8 +268,17 @@
                 className: "esri-icon-edit"
             };
 
+            const geometryService = new GeometryService({ url: "https://sampleserver6.arcgisonline.com/arcgis/rest/services/Utilities/Geometry/GeometryServer" });
+
             var map = new Map({
                 basemap: "hybrid"
+            });
+
+            var featureLayer = new FeatureLayer({
+                //url: "https://services5.arcgis.com/62o2qANhRqripAuB/ArcGIS/rest/services/PHX_Aircraft/FeatureServer/0",
+                url: "https://services5.arcgis.com/62o2qANhRqripAuB/ArcGIS/rest/services/PHX_Aircraft_Arizona_State_Plane/FeatureServer/0",
+                //url: "https://maps.phoenix.gov/avn/rest/services/Public/Sky_Harbor_Aircraft_Types_2020/FeatureServer/0",
+                outFields: ["*"]
             });
 
             // View
@@ -280,14 +291,7 @@
                 },
                 ui: { components: [] },
                 zoom: 18,
-                center: [-112.009, 33.433]
-            });
-
-            var featureLayer = new FeatureLayer({
-                url: "https://services5.arcgis.com/62o2qANhRqripAuB/ArcGIS/rest/services/PHX_Aircraft/FeatureServer/0",
-
-                //url: "https://maps.phoenix.gov/avn/rest/services/Public/Sky_Harbor_Aircraft_Types_2020/FeatureServer/0",
-                outFields: ["*"]
+                center: [-112.009, 33.433],
             });
 
             var template = {
@@ -415,6 +419,7 @@
                     var highlightQuery = planeLayer.createQuery();
                     highlightQuery.where = "objectId =" + addedPlaneOID;
                     highlightQuery.returnGeometry = true;
+                    highlightQuery.outSpatialReference = planeLayer.spatialReference;
                     planeLayer.queryFeatures(highlightQuery).then(function (queryResult) {
                         if (highlight) {
                             highlight.remove();
@@ -430,11 +435,6 @@
                     mapView.ui.remove(editor);
                     editor.destroy();
                     createEditor()
-                }
-                if (evt.updatedFeatures.length > 0) {
-                    if (addedPlaneOID === evt.updatedFeatures[0].objectId) {
-                        alphaPlane = addedPlane;
-                    }
                 }
             });
 
@@ -460,21 +460,40 @@
                     highlight.remove();
                 }
                 if (addPlane == true) {
-                    translatePolygon(aircraftTemplateCentroid, event.mapPoint, aircraftTemplate.geometry)
-                    planeLayer.applyEdits({
-                        addFeatures: [aircraftTemplate]
+                    let projectParams = new ProjectParameters({
+                        geometries: [event.mapPoint],
+                        outSpatialReference: featureLayer.spatialReference
                     });
-                    addPlane = false;
-                    document.body.style.cursor = "default";
-                    document.getElementById("addAlert").style.display = "none";
+
+                    geometryService.project(projectParams).then(function (evt) {
+                        console.log(evt)
+                        translatePolygon(aircraftTemplateCentroid, evt[0], aircraftTemplate.geometry);
+                        planeLayer.applyEdits({
+                            addFeatures: [aircraftTemplate]
+                        });
+                        addPlane = false;
+                        document.body.style.cursor = "default";
+                        document.getElementById("addAlert").style.display = "none";
+                    })
+
+
 
                 } else if (copyPasteActive == true) {
                     console.log(alphaPlane);
-                    var x = alphaPlane.clone();
-                    translatePolygon(x.geometry.centroid, event.mapPoint, x.geometry);
-                    planeLayer.applyEdits({
-                        addFeatures: [x]
+                    let projectParams = new ProjectParameters({
+                        geometries: [event.mapPoint],
+                        outSpatialReference: featureLayer.spatialReference
                     });
+                    geometryService.project(projectParams).then(function (evt) {
+                        var x = alphaPlane.clone();
+                        console.log("start centroid: ", x.geometry.centroid);
+                        console.log(evt[0])
+                        translatePolygon(x.geometry.centroid, evt[0], x.geometry);
+                        planeLayer.applyEdits({
+                            addFeatures: [x]
+                        });
+                    })
+
 
                 } else {
                     mapView.hitTest(event).then(function (response) {
@@ -526,8 +545,9 @@
                 planeTemplateQuery.returnGeometry = true;
                 featureLayer.queryFeatures(planeTemplateQuery).then(function (queryResults) {
                     console.log(queryResults)
-                    aircraftTemplateCentroid = queryResults.features[0].geometry.centroid
-                    aircraftTemplate = queryResults.features[0]
+                    aircraftTemplateCentroid = queryResults.features[0].geometry.centroid;
+                    aircraftTemplate = queryResults.features[0];
+                    alphaPlane = queryResults.features[0];
                 }).catch(function (error) {
                     console.log(error);
                 });
@@ -535,6 +555,8 @@
 
             function translatePolygon(startPoint, currPoint, polygon) {
                 console.log("Polygon: ", polygon)
+                console.log("Start Point", startPoint)
+
                 let dx = currPoint.x - startPoint.x;
                 let dy = currPoint.y - startPoint.y;
                 polygon.rings.forEach(ring => {
@@ -573,7 +595,6 @@
             }
 
             function editPlane(feature) {
-
                 if (!editor.viewModel.activeWorkFlow) {
 
                     mapView.popup.visible = false;
