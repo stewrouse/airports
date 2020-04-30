@@ -34,7 +34,7 @@ params =
         ]
     },
 
-    "aircraftLayerURL": "https://services.arcgis.com/6I1ysurtNWNxkuwd/arcgis/rest/services/Aircraft_Playground/FeatureServer/0",
+    "aircraftLayerURL": "https://services.arcgis.com/6I1ysurtNWNxkuwd/ArcGIS/rest/services/PHX_Aircraft_AZ_State_Plane/FeatureServer/0",
 
     "fieldConfig": [
         {
