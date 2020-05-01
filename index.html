@@ -133,7 +133,7 @@
     <div id="planeSelect" class="esri-widget"></div>
     <div id="copyFeaturesDiv" class="esri-widget">
         <b>Plane to be copied and pasted:</b>
-        <p id="copyPasteInfo">hello</p>
+        <p id="copyPasteInfo">--</p>
         <button class="btn modifier-class btn-small" id="copyFeaturesBtn">Copy Plane</button>
         <button class="btn modifier-class btn-small btn-red" id="stopCopyBtn">Stop Copy</button>
     </div>
@@ -253,14 +253,14 @@
             var editTemplate = params.fieldConfig;
 
             for (i = 0; i < planeList.length; i++) {
-                console.log(planeList[i]);
+                //console.log(planeList[i]);
                 if (i == planeList.length - 1) {
                     planeWhereClause += "Aircraft_Type ='" + planeList[i] + "'"
                 } else {
                     planeWhereClause += "Aircraft_Type ='" + planeList[i] + "' OR ";
                 }
             }
-            console.log(planeWhereClause);
+            //console.log(planeWhereClause);
 
             const editPlaneAction = {
                 title: "Edit Plane Info",
@@ -296,25 +296,8 @@
 
             var template = {
                 title: 'Aircraft',
-                content: [
-                    {
-                        type: "fields",
-                        fieldInfos: [
-                            { fieldName: "Aircraft_Type", label: "Aircraft Type" },
-                            { fieldName: "Manufacturer", label: "Manufacturer" },
-                            { fieldName: "Model", label: "Model" },
-                            { fieldName: "Wingspan", label: "Wingspan (ft)" },
-                            { fieldName: "Length", label: "Length (ft)" },
-                            { fieldName: "Gross_Weight", label: "Gross Weight" },
-                            { fieldName: "Tail_Number", label: "Tail Number" },
-                            { fieldName: "Carrier", label: "Carrier" },
-                            { fieldName: "Date In", label: "Date In" },
-                            { fieldName: "Date Out", label: "Date Out" }
-                        ]
-                    }
-                ],
+                content:'<div style="text-align: center;"><h1>{Manufacturer} {Aircraft_Type}</h1></ br><h2>Carrier - {Carrier}</h2></ br><h2>Tail Number - {Tail_Number}</h2></ br><h2>Wingspan - {Wingspan}\'</h2></ br><h2>Length - {FuselageLength}\'</h2></ br><h2>Empty Weight - {Gross_Weight}#</h2></ br><h2>Date In - {Date_In}</h2></ br></ br><h2>Date Out - {Date_Out}</h2></ br></div>',
                 actions: [editPlaneAction]
-
             }
 
             var planeLayer = new FeatureLayer({
@@ -414,27 +397,54 @@
 
             planeLayer.on("edits", function (evt) {
                 if (evt.addedFeatures.length == 1) {
+                    console.log(addPlane)
                     console.log(evt);
                     addedPlaneOID = evt.addedFeatures[0].objectId;
                     var highlightQuery = planeLayer.createQuery();
                     highlightQuery.where = "objectId =" + addedPlaneOID;
                     highlightQuery.returnGeometry = true;
-                    highlightQuery.outSpatialReference = planeLayer.spatialReference;
                     planeLayer.queryFeatures(highlightQuery).then(function (queryResult) {
                         if (highlight) {
                             highlight.remove();
                         }
                         highlight = planeLayerView.highlight(queryResult.features);
                         addedPlane = queryResult.features[0];
-
-                        console.log(addedPlane);
+                        console.log(queryResult)
+                        //console.log(addedPlane);
 
                         editPlane(addedPlane)
+                        return queryResult
+                    }).then(function (queryResult) {
+                        let projectParams = new ProjectParameters({
+                            geometries: [queryResult.features[0].geometry],
+                            outSpatialReference: featureLayer.spatialReference
+                        });
+
+                        geometryService.project(projectParams).then(function (evt) {
+                            //console.log(evt)
+                            alphaPlane = queryResult.features[0].clone();
+                            let geom = { geometry: evt[0] }
+                            alphaPlane.set(geom);
+                            console.log("new alpha plane: ", alphaPlane)
+                        });
                     })
                 } else if (editor.viewModel.state === "editing-existing-feature") {
                     mapView.ui.remove(editor);
                     editor.destroy();
                     createEditor()
+                }
+                if (evt.updatedFeatures.length > 0) {
+                    if (addedPlaneOID === evt.updatedFeatures[0].objectId) {
+                        console.log(addedPlane)
+                        alphaPlane = addedPlane;
+                        var getUpdatedPlane = planeLayer.createQuery();
+                        getUpdatedPlane.where = "objectId =" + addedPlaneOID;
+                        getUpdatedPlane.returnGeometry = true;
+                        planeLayer.queryFeatures(getUpdatedPlane).then(function(res){
+                            console.log(res);
+                            alphaPlane = res.features[0].clone();
+                        })
+                    }
                 }
             });
 
@@ -547,7 +557,7 @@
                     console.log(queryResults)
                     aircraftTemplateCentroid = queryResults.features[0].geometry.centroid;
                     aircraftTemplate = queryResults.features[0];
-                    alphaPlane = queryResults.features[0];
+                    //alphaPlane = queryResults.features[0];
                 }).catch(function (error) {
                     console.log(error);
                 });

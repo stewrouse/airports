@@ -2,7 +2,7 @@ params=
 
 {
 
-"aircraftList":["A 300","A 319","A 320","A 321","A330_200","A330_300","A340_600","A350_900","B 737_800","B737_900","B747_400","B757_200","B757_300","B767_200","B767_300W","B777_200","B777_300ER","B787_800","B787_900","C_17","Beechcraft_1900C"],
+"aircraftList":["A 300","A 319","A 320","A 321","A330_200","A330_300","A340_600","A350_900","B 737_800","B737_900","B747_400","B757_200","B757_300","B767_200","B767_300W","B777_200","B777_300ER","B787_800","B787_900","C_17","C5_A_P","KC_135","CRJ_700","CRJ_900","Beechcraft_1900C","Embraer_145","Embraer_170","Embraer_190","C130_J","MD 11","MD10_10"],
 
 "renderer":{
     "type": "unique-value",
@@ -16,9 +16,9 @@ params=
             "symbol": {
                 "type": "simple-fill",
                 "color": [
-                    159,
-                    224,
-                    25
+                    10,
+                    30,
+                    115
                 ]
             }
         },
@@ -27,9 +27,9 @@ params=
             "symbol": {
                 "type": "simple-fill",
                 "color": [
-                    175,
-                    248,
-                    47
+                    53,
+                    53,
+                    197
                 ]
             }
         },
@@ -38,9 +38,9 @@ params=
             "symbol": {
                 "type": "simple-fill",
                 "color": [
-                    135,
-                    175,
-                    88
+                    209,
+                    254,
+                    247
                 ]
             }
         },
@@ -49,9 +49,9 @@ params=
             "symbol": {
                 "type": "simple-fill",
                 "color": [
-                    231,
-                    168,
-                    117
+                    233,
+                    152,
+                    205
                 ]
             }
         },
@@ -60,9 +60,9 @@ params=
             "symbol": {
                 "type": "simple-fill",
                 "color": [
-                    220,
-                    171,
-                    16
+                    154,
+                    199,
+                    99
                 ]
             }
         },
@@ -71,9 +71,9 @@ params=
             "symbol": {
                 "type": "simple-fill",
                 "color": [
-                    8,
-                    61,
-                    169
+                    189,
+                    247,
+                    78
                 ]
             }
         },
@@ -82,9 +82,9 @@ params=
             "symbol": {
                 "type": "simple-fill",
                 "color": [
-                    160,
-                    30,
-                    215
+                    161,
+                    79,
+                    43
                 ]
             }
         },
@@ -93,9 +93,9 @@ params=
             "symbol": {
                 "type": "simple-fill",
                 "color": [
-                    33,
-                    201,
-                    96
+                    113,
+                    124,
+                    103
                 ]
             }
         },
@@ -104,9 +104,9 @@ params=
             "symbol": {
                 "type": "simple-fill",
                 "color": [
-                    130,
-                    58,
-                    116
+                    237,
+                    7,
+                    14
                 ]
             }
         },
@@ -115,9 +115,9 @@ params=
             "symbol": {
                 "type": "simple-fill",
                 "color": [
-                    195,
-                    221,
-                    98
+                    140,
+                    80,
+                    125
                 ]
             }
         },
@@ -126,9 +126,9 @@ params=
             "symbol": {
                 "type": "simple-fill",
                 "color": [
-                    33,
-                    76,
-                    80
+                    56,
+                    150,
+                    232
                 ]
             }
         },
@@ -137,9 +137,9 @@ params=
             "symbol": {
                 "type": "simple-fill",
                 "color": [
-                    156,
-                    14,
-                    144
+                    68,
+                    113,
+                    20
                 ]
             }
         },
@@ -148,9 +148,9 @@ params=
             "symbol": {
                 "type": "simple-fill",
                 "color": [
-                    60,
-                    165,
-                    232
+                    91,
+                    175,
+                    115
                 ]
             }
         },
@@ -159,9 +159,9 @@ params=
             "symbol": {
                 "type": "simple-fill",
                 "color": [
-                    32,
-                    245,
-                    242
+                    196,
+                    178,
+                    90
                 ]
             }
         },
@@ -170,9 +170,9 @@ params=
             "symbol": {
                 "type": "simple-fill",
                 "color": [
-                    152,
-                    182,
-                    187
+                    157,
+                    208,
+                    149
                 ]
             }
         },
@@ -181,9 +181,9 @@ params=
             "symbol": {
                 "type": "simple-fill",
                 "color": [
-                    244,
-                    199,
-                    53
+                    7,
+                    1,
+                    43
                 ]
             }
         },
@@ -192,9 +192,9 @@ params=
             "symbol": {
                 "type": "simple-fill",
                 "color": [
-                    101,
-                    198,
-                    45
+                    168,
+                    223,
+                    91
                 ]
             }
         },
@@ -203,9 +203,9 @@ params=
             "symbol": {
                 "type": "simple-fill",
                 "color": [
-                    233,
-                    7,
-                    110
+                    241,
+                    180,
+                    48
                 ]
             }
         },
@@ -214,9 +214,9 @@ params=
             "symbol": {
                 "type": "simple-fill",
                 "color": [
-                    14,
-                    75,
-                    26
+                    147,
+                    168,
+                    28
                 ]
             }
         },
@@ -225,9 +225,53 @@ params=
             "symbol": {
                 "type": "simple-fill",
                 "color": [
-                    237,
-                    75,
-                    130
+                    84,
+                    156,
+                    240
+                ]
+            }
+        },
+        {
+            "value": "C5_A_P",
+            "symbol": {
+                "type": "simple-fill",
+                "color": [
+                    171,
+                    131,
+                    43
+                ]
+            }
+        },
+        {
+            "value": "KC_135",
+            "symbol": {
+                "type": "simple-fill",
+                "color": [
+                    122,
+                    39,
+                    211
+                ]
+            }
+        },
+        {
+            "value": "CRJ_700",
+            "symbol": {
+                "type": "simple-fill",
+                "color": [
+                    225,
+                    82,
+                    162
+                ]
+            }
+        },
+        {
+            "value": "CRJ_900",
+            "symbol": {
+                "type": "simple-fill",
+                "color": [
+                    0,
+                    222,
+                    149
                 ]
             }
         },
@@ -236,16 +280,82 @@ params=
             "symbol": {
                 "type": "simple-fill",
                 "color": [
-                    21,
-                    203,
-                    217
+                    78,
+                    249,
+                    194
+                ]
+            }
+        },
+        {
+            "value": "Embraer_145",
+            "symbol": {
+                "type": "simple-fill",
+                "color": [
+                    72,
+                    247,
+                    249
+                ]
+            }
+        },
+        {
+            "value": "Embraer_170",
+            "symbol": {
+                "type": "simple-fill",
+                "color": [
+                    118,
+                    221,
+                    90
+                ]
+            }
+        },
+        {
+            "value": "Embraer_190",
+            "symbol": {
+                "type": "simple-fill",
+                "color": [
+                    214,
+                    156,
+                    100
+                ]
+            }
+        },
+        {
+            "value": "C130_J",
+            "symbol": {
+                "type": "simple-fill",
+                "color": [
+                    126,
+                    0,
+                    65
+                ]
+            }
+        },
+        {
+            "value": "MD 11",
+            "symbol": {
+                "type": "simple-fill",
+                "color": [
+                    242,
+                    184,
+                    55
+                ]
+            }
+        },
+        {
+            "value": "MD10_10",
+            "symbol": {
+                "type": "simple-fill",
+                "color": [
+                    200,
+                    24,
+                    22
                 ]
             }
         }
     ]
 },
 
-"aircraftLayerURL":"https://services.arcgis.com/6I1ysurtNWNxkuwd/ArcGIS/rest/services/PHX_Aircraft_AZ_State_Plane/FeatureServer/0",
+"aircraftLayerURL":"https://services.arcgis.com/6I1ysurtNWNxkuwd/arcgis/rest/services/Parked_Aircraft/FeatureServer/0",
 
 "fieldConfig":[
     {
