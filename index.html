@@ -93,28 +93,46 @@
 
         <!-- Panel - Basemaps -->
 
-        
-    <div id="panelInfo" class="panel collapse">
-      <div id="headingInfo" class="panel-heading" role="tab">
-        <div class="panel-title">
-          <a class="panel-toggle" role="button" data-toggle="collapse" href="#collapseInfo"  aria-expanded="true" aria-controls="collapseInfo"><span class="glyphicon glyphicon-info-sign" aria-hidden="true"></span><span class="panel-label">About</span></a> 
-          <a class="panel-close" role="button" data-toggle="collapse" tabindex="0" href="#panelInfo"><span class="esri-icon esri-icon-close" aria-hidden="true"></span></a>  
+
+        <div id="panelInfo" class="panel collapse">
+            <div id="headingInfo" class="panel-heading" role="tab">
+                <div class="panel-title">
+                    <a class="panel-toggle" role="button" data-toggle="collapse" href="#collapseInfo"
+                        aria-expanded="true" aria-controls="collapseInfo"><span class="glyphicon glyphicon-info-sign"
+                            aria-hidden="true"></span><span class="panel-label">About</span></a>
+                    <a class="panel-close" role="button" data-toggle="collapse" tabindex="0" href="#panelInfo"><span
+                            class="esri-icon esri-icon-close" aria-hidden="true"></span></a>
+                </div>
+            </div>
+            <div id="collapseInfo" class="panel-collapse collapse in" role="tabpanel" aria-labelledby="headingInfo">
+                <div class="panel-body">
+                    <h1 class="modifier-class text-rule">Instructions</h1>
+                    <h3><b>Adding a new aircraft</b></h3>
+                    <p>The dropdown menu on the left side of the application is used to add a new aircraft to the map.
+                        After selecting an aircraft, the cursor will change to crosshairs. Anytime the cursor has
+                        changed to crosshairs, by clicking on the map, you will be adding a new aircraft.</p>
+                    <hr>
+                    <h3><b>Editing an existing aircraft</b></h3>
+                    <p>To edit an aircraft that is already on the map, click the aircraft, then click the button in the
+                        popup that reads, "Edit Plane Info." An editing tool will appear in the top right-hand corner of
+                        the application. Also, a box will be drawn around the plane with a rotation handle. Click and
+                        drag the aircraft to move it to its correct location, then use the handle to rotate the plane to
+                        match its real world orientation if applicable. When finished editing, be sure to click the
+                        "Update" button at the bottom of the editing tool to confirm any changes made.</p>
+                    <h3><b>Deleting an existing aircraft</b></h3>
+                    <p>To delete an aircraft, click the aircraft, then click the button in the
+                        popup that reads, "Edit Plane Info." An editing tool will appear in the top right-hand corner of
+                        the application. Click the "Delete" button at the bottom of the editing tool, then click "Delete" to confirm your decision.</p>
+                    <h3><b>Copy & Paste</b></h3>
+                    <p>The copy & paste feature allows the user to quickly add multiple copies of the same aircraft
+                        without having to select it multiple times from the aircraft picker. Whenever the aircraft is
+                        highlighted it can be copied and pasted. This includes after it is initially added to the map.
+                        Avoid trying to copy and paste while in edit mode. Complete your edits, then select the aircraft
+                        to copy and paste it.</p>
+                </div>
+            </div>
         </div>
-      </div>
-      <div id="collapseInfo" class="panel-collapse collapse in" role="tabpanel" aria-labelledby="headingInfo">
-        <div class="panel-body">
-         <h1 class="modifier-class text-rule">Instructions</h1>
-            <h3><b>Adding a new aircraft</b></h3>
-            <p>The dropdown menu on the left side of the application is used to add a new aircraft to the map. After selecting an aircraft, the cursor will change to crosshairs. Anytime the cursor has changed to crosshairs, by clicking on the map, you will be adding a new aircraft.</p>
-            <hr>
-            <h3><b>Editing an existing aircraft</b></h3>
-            <p>To edit an aircraft that is already on the map, click the aircraft, then click the button in the popup that reads, "Edit Plane Info." An editing tool will appear in the top right-hand corner of the application. Also, a box will be drawn around the plane with a rotation handle. Click and drag the aircraft to move it to its correct location, then use the handle to rotate the plane to match its real world orientation if applicable. When finished editing, be sure to click the "Update" button at the bottom of the editing tool to confirm any changes made.</p>
-            <h3><b>Copy & Paste</b></h3>
-            <p>The copy & paste feature allows the user to quickly add multiple copies of the same aircraft without having to select it multiple times from the aircraft picker.  Whenever the aircraft is highlighted it can be copied and pasted.  This includes after it is initially added to the map. Avoid trying to copy and paste while in edit mode.  Complete your edits, then select the aircraft to copy and paste it.</p>
-        </div>
-     </div>
-    </div>
-   
+
 
         <!-- Panel - Legend -->
 
@@ -227,6 +245,8 @@
             "esri/renderers/UniqueValueRenderer",
             "esri/tasks/GeometryService",
             "esri/tasks/support/ProjectParameters",
+            "esri/Basemap",
+            "esri/layers/MapImageLayer",
 
             // Bootstrap
             "bootstrap/Collapse",
@@ -238,7 +258,7 @@
             "calcite-maps/calcitemaps-arcgis-support-v0.10",
 
             "dojo/domReady!"
-        ], function (Map, MapView, Editor, Home, Zoom, Compass, Search, Legend, BasemapToggle, ScaleBar, Attribution, Expand, Measurement, FeatureLayer, UniqueValueRenderer, GeometryService, ProjectParameters, Collapse, Dropdown, CalciteMaps, CalciteMapArcGISSupport) {
+        ], function (Map, MapView, Editor, Home, Zoom, Compass, Search, Legend, BasemapToggle, ScaleBar, Attribution, Expand, Measurement, FeatureLayer, UniqueValueRenderer, GeometryService, ProjectParameters, Basemap, MapImageLayer, Collapse, Dropdown, CalciteMaps, CalciteMapArcGISSupport) {
 
             /******************************************************************
              *
@@ -278,8 +298,19 @@
 
             const geometryService = new GeometryService({ url: "https://sampleserver6.arcgisonline.com/arcgis/rest/services/Utilities/Geometry/GeometryServer" });
 
+            var basemap = new Basemap({
+                baseLayers: [
+                    new MapImageLayer({
+                        url: "https://gis.mcassessor.maricopa.gov/arcgis/rest/services/Aerials2020/MapServer",
+                        title: "Basemap"
+                    })
+                ],
+                title: "basemap",
+                id: "basemap"
+            });
+
             var map = new Map({
-                basemap: "hybrid"
+                basemap: basemap
             });
 
             var featureLayer = new FeatureLayer({
@@ -297,9 +328,12 @@
                     top: 50,
                     bottom: 0
                 },
-                ui: { components: [] },
-                zoom: 18,
-                center: [-112.009, 33.433],
+                extent:{
+                    xmin:-112.031429,
+                    ymin:33.425908,
+                    xmax:-111.990595,
+                    ymax:33.442686
+                }
             });
 
             var template = {
