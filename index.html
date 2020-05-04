@@ -48,9 +48,10 @@
                 </div>
             </a>
             <ul class="dropdown-menu" role="menu">
-                <!--
-        <li><a role="menuitem" tabindex="0" data-target="#panelInfo" aria-haspopup="true"><span class="glyphicon glyphicon-info-sign"></span> About</a></li>
-        -->
+
+                <li><a role="menuitem" tabindex="0" data-target="#panelInfo" aria-haspopup="true"><span
+                            class="glyphicon glyphicon-info-sign"></span> About</a></li>
+
                 <li><a role="menuitem" tabindex="0" href="#" data-target="#panelLegend" aria-haspopup="true"><span
                             class="glyphicon glyphicon-list-alt"></span> Legend</a></li>
                 <li><a role="menuitem" tabindex="0" href="#" id="calciteToggleNavbar" aria-haspopup="true"><span
@@ -92,8 +93,8 @@
 
         <!-- Panel - Basemaps -->
 
-        <!--
-    <div id="panelInfo" class="panel collapse in">
+        
+    <div id="panelInfo" class="panel collapse">
       <div id="headingInfo" class="panel-heading" role="tab">
         <div class="panel-title">
           <a class="panel-toggle" role="button" data-toggle="collapse" href="#collapseInfo"  aria-expanded="true" aria-controls="collapseInfo"><span class="glyphicon glyphicon-info-sign" aria-hidden="true"></span><span class="panel-label">About</span></a> 
@@ -102,11 +103,18 @@
       </div>
       <div id="collapseInfo" class="panel-collapse collapse in" role="tabpanel" aria-labelledby="headingInfo">
         <div class="panel-body">
-          <p>This is my map app!</p>
+         <h1 class="modifier-class text-rule">Instructions</h1>
+            <h3><b>Adding a new aircraft</b></h3>
+            <p>The dropdown menu on the left side of the application is used to add a new aircraft to the map. After selecting an aircraft, the cursor will change to crosshairs. Anytime the cursor has changed to crosshairs, by clicking on the map, you will be adding a new aircraft.</p>
+            <hr>
+            <h3><b>Editing an existing aircraft</b></h3>
+            <p>To edit an aircraft that is already on the map, click the aircraft, then click the button in the popup that reads, "Edit Plane Info". An editing tool will appear in the top right-hand corner of the application. Also, a box will be drawn around the plane with a rotation handle. Click and drag the aircraft to move it to its correct location, then use the handle to rotate the plane to match is real world orientation if applicable. When finished editing, be sure to click the "Update" button at the bottom of the editing tool to confirm any changes made.</p>
+            <h3><b>Copy & Paste</b></h3>
+            <p>The copy & paste feature allows the user to quickly add multiple copies of the same aircraft without having to select it multiple times from the aircraft picker.  Whenever the aircraft is highlighted it can be copied and pasted.  This includes after it is initially added to the map. Avoid trying to copy and paste while in edit mode.  Complete your edits, then select the aircraft to copy and paste it.</p>
         </div>
      </div>
     </div>
-    -->
+   
 
         <!-- Panel - Legend -->
 
@@ -296,7 +304,7 @@
 
             var template = {
                 title: 'Aircraft',
-                content:'<div style="text-align: center;"><h1>{Manufacturer} {Aircraft_Type}</h1></ br><h2>Carrier - {Carrier}</h2></ br><h2>Tail Number - {Tail_Number}</h2></ br><h2>Wingspan - {Wingspan}\'</h2></ br><h2>Length - {FuselageLength}\'</h2></ br><h2>Empty Weight - {Gross_Weight}#</h2></ br><h2>Date In - {Date_In}</h2></ br></ br><h2>Date Out - {Date_Out}</h2></ br></div>',
+                content: '<div style="text-align: center;"><h1>{Manufacturer} {Aircraft_Type}</h1></ br><h2>Carrier - {Carrier}</h2></ br><h2>Tail Number - {Tail_Number}</h2></ br><h2>Wingspan - {Wingspan}\'</h2></ br><h2>Length - {FuselageLength}\'</h2></ br><h2>Empty Weight - {Gross_Weight}#</h2></ br><h2>Date In - {Date_In}</h2></ br></ br><h2>Date Out - {Date_Out}</h2></ br></div>',
                 actions: [editPlaneAction]
             }
 
@@ -440,7 +448,7 @@
                         var getUpdatedPlane = planeLayer.createQuery();
                         getUpdatedPlane.where = "objectId =" + addedPlaneOID;
                         getUpdatedPlane.returnGeometry = true;
-                        planeLayer.queryFeatures(getUpdatedPlane).then(function(res){
+                        planeLayer.queryFeatures(getUpdatedPlane).then(function (res) {
                             console.log(res);
                             alphaPlane = res.features[0].clone();
                         })
