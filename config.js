@@ -371,8 +371,8 @@ params=
         "label": "Date In"
     },
     {
-        "name": "Date_Out",
-        "label": "Date Out"
+        "name": "status",
+        "label": "Status"
     }
 ]
 

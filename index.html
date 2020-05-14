@@ -109,8 +109,9 @@
                     <h1 class="modifier-class text-rule">Instructions</h1>
                     <h3><b>Adding a new aircraft</b></h3>
                     <p>The dropdown menu on the left side of the application is used to add a new aircraft to the map.
-                        After selecting an aircraft type, the cursor will change to crosshairs. Anytime the cursor has
-                        changed to crosshairs, by clicking on the map, you will be adding a new aircraft.</p>
+                        After selecting an aircraft, click the "Add Plane" button. Once the button is clicked, the
+                        cursor will change to crosshairs. Anytime the cursor has changed to crosshairs, by clicking on
+                        the map, you will be adding a new aircraft.</p>
                     <hr>
                     <h3><b>Editing an existing aircraft</b></h3>
                     <p>To edit an aircraft that is already on the map, click the aircraft, then click the button in the
@@ -119,10 +120,16 @@
                         drag the aircraft to move it to its correct location, then use the handle to rotate the plane to
                         match its real world orientation if applicable. When finished editing, be sure to click the
                         "Update" button at the bottom of the editing tool to confirm any changes made.</p>
+                    <hr>
+                    <h3><b>Outgoing Aircraft</b></h3>
+                    <p>After an aircraft has completed its stay, it needs to be removed from the map, but not removed from the records. The map is configured to only show the aircraft with an "Active" status. Changing the status from "Active" to "Inactive" follows the same steps as the editing workflow discussed above. The "Status" attribute can be found at the bottom of the editing tool.</p>
+                    <hr>
                     <h3><b>Deleting an existing aircraft</b></h3>
                     <p>To delete an aircraft, click the aircraft, then click the button in the
                         popup that reads, "Edit Plane Info." An editing tool will appear in the top right-hand corner of
-                        the application. Click the "Delete" button at the bottom of the editing tool, then click "Delete" to confirm your decision.</p>
+                        the application. Click the "Delete" button at the bottom of the editing tool, then click
+                        "Delete" to confirm your decision.</p>
+                    <hr>
                     <h3><b>Copy & Paste</b></h3>
                     <p>The copy & paste feature allows the user to quickly add multiple copies of the same aircraft
                         without having to select it multiple times from the aircraft picker. Whenever the aircraft is
@@ -156,7 +163,10 @@
     </div>
 
     <!-- /.calcite-panels -->
-    <div id="planeSelect" class="esri-widget"></div>
+    <div id="addPlaneDiv" class="esri-widget panel modifier-class">
+        <div id="planeSelect"></div>
+        <button class="btn modifier-class" id="addPlaneBtn" style="margin-top: 7px;">Add Plane</button>
+    </div>
     <div id="copyFeaturesDiv" class="esri-widget">
         <b>Plane to be copied and pasted:</b>
         <p id="copyPasteInfo">--</p>
@@ -266,7 +276,7 @@
              * 
              ******************************************************************/
 
-            var value, planeLayer, planeGraphic, highlightSelect, planeLayerView, editor, features, editConfig, addedPlaneOID, highlight, addedPlane;
+            var value, planeLayer, planeGraphic, highlightSelect, planeLayerView, editor, features, editConfig, addedPlaneOID, highlight, addedPlane, planeNameFromPlaneSelect;
 
             var copyPasteActive = false;
             var addPlane = false;
@@ -328,17 +338,17 @@
                     top: 50,
                     bottom: 0
                 },
-                extent:{
-                    xmin:-112.031429,
-                    ymin:33.425908,
-                    xmax:-111.990595,
-                    ymax:33.442686
+                extent: {
+                    xmin: -112.031429,
+                    ymin: 33.425908,
+                    xmax: -111.990595,
+                    ymax: 33.442686
                 }
             });
 
             var template = {
                 title: 'Aircraft',
-                content: '<div style="text-align: center;"><h1>{Manufacturer} {Aircraft_Type}</h1></ br><h2>Carrier - {Carrier}</h2></ br><h2>Tail Number - {Tail_Number}</h2></ br><h2>Wingspan - {Wingspan}\'</h2></ br><h2>Length - {FuselageLength}\'</h2></ br><h2>Empty Weight - {Gross_Weight}#</h2></ br><h2>Date In - {Date_In}</h2></ br></ br><h2>Date Out - {Date_Out}</h2></ br></div>',
+                content: '<div style="text-align: center;"><h1>{Manufacturer} {Aircraft_Type}</h1></ br><h2>Carrier - {Carrier}</h2></ br><h2>Tail Number - {Tail_Number}</h2></ br><h2>Wingspan - {Wingspan}\'</h2></ br><h2>Length - {FuselageLength}\'</h2></ br><h2>Empty Weight - {Gross_Weight}#</h2></ br><h2>Date In - {Date_In}</h2></ br></ br><h2>Status - {status}</h2></ br></div>',
                 actions: [editPlaneAction]
             }
 
@@ -347,7 +357,8 @@
                 displayField: "Aircraft_Type",
                 outFields: ["*"],
                 popupTemplate: template,
-                renderer: planeLayerRenderer
+                renderer: planeLayerRenderer,
+                definitionExpression: "status = 'active'"
             })
 
             map.add(planeLayer);
@@ -385,7 +396,7 @@
                 view: mapView
             });
             mapView.ui.add(compass, "top-left");
-            mapView.ui.add("planeSelect", "top-left");
+            mapView.ui.add("addPlaneDiv", "top-left");
 
             var basemapToggle = new BasemapToggle({
                 view: mapView,
@@ -452,7 +463,7 @@
                         highlight = planeLayerView.highlight(queryResult.features);
                         addedPlane = queryResult.features[0];
                         console.log(queryResult)
-                        //console.log(addedPlane);
+                        console.log(addedPlane);
 
                         editPlane(addedPlane)
                         return queryResult
@@ -506,6 +517,7 @@
                 document.getElementById("copyPasteInfo").innerText = "";
             }
 
+            document.getElementById("addPlaneBtn").onclick = planeSelected;
 
             mapView.on("click", function (event) {
                 if (highlight) {
@@ -564,13 +576,17 @@
 
             function createPlaneSelect() {
                 var planeSelect_select = document.createElement('select');
-                planeSelect_select.addEventListener("change", planeSelected);
+                //planeSelect_select.addEventListener("change", planeSelected);
+                planeSelect_select.addEventListener("change", function (evt) {
+                    planeNameFromPlaneSelect = evt.srcElement.value;
+                });
                 var selectHTML = "<option value='' disabled selected>Select a Plane</option>";
 
                 var planesQuery = featureLayer.createQuery();
                 planesQuery.where = planeWhereClause;
                 planesQuery.outFields = ["Aircraft_Type"];
                 planesQuery.returnGeometry = false;
+                planesQuery.orderByFields = ["Aircraft_Type"];
 
                 featureLayer.queryFeatures(planesQuery).then(function (results) {
                     for (i = 0; i < results.features.length; i++) {
@@ -589,7 +605,7 @@
                 document.body.style.cursor = "crosshair";
                 document.getElementById("addAlert").style.display = "block";
                 console.log(select.srcElement.value)
-                var planeNameFromPlaneSelect = select.srcElement.value;
+                //var planeNameFromPlaneSelect = select.srcElement.value;
 
                 var planeTemplateQuery = featureLayer.createQuery();
                 planeTemplateQuery.where = "Aircraft_Type = '" + planeNameFromPlaneSelect + "'";
@@ -647,6 +663,7 @@
             }
 
             function editPlane(feature) {
+                console.log(feature);
                 if (!editor.viewModel.activeWorkFlow) {
 
                     mapView.popup.visible = false;
@@ -683,7 +700,7 @@
                             });
                         });
                     }
-                }, 250);
+                }, 400);
             }
 
             // Watch when the popup is visible
